@@ -81,7 +81,7 @@ namespace KarthagoCharacterGeneratorTool
             document.DefaultPageSetup.RightMargin = new Unit(0.6, UnitType.Centimeter);
             document.DefaultPageSetup.BottomMargin = new Unit(0.6, UnitType.Centimeter);
             document.DefaultPageSetup.TopMargin = new Unit(0.6, UnitType.Centimeter);
-
+            
             DefineStyles(document);
 
             //Cover.DefineCover(document);
@@ -425,6 +425,7 @@ namespace KarthagoCharacterGeneratorTool
 
             // Create a paragraph with centered page number. See definition of style "Footer".
             var paragraph = new Paragraph();
+            paragraph.AddDateField();
             paragraph.AddTab();
             paragraph.AddPageField();
 

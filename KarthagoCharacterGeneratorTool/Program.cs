@@ -161,9 +161,15 @@ namespace KarthagoCharacterGeneratorTool
 
         private static void HandleBlocks(IEnumerable<MarkdownBlock> blocks, Document document, Paragraph paragraph = null)
         {
+            bool lineBreak = false;
 
             foreach (var block in blocks)
             {
+                if (lineBreak)
+                {
+                    document.LastSection.AddPageBreak();
+                    lineBreak = false;
+                }
                 paragraph ??= document.LastSection.AddParagraph();
                 switch (block)
                 {
@@ -180,7 +186,7 @@ namespace KarthagoCharacterGeneratorTool
                         MakeTable(paragraph, w, document);
                         break;
                     case HorizontalRuleBlock hr:
-                        document.LastSection.AddPageBreak();
+                        lineBreak = true;
                         break;
                     default:
                         break;

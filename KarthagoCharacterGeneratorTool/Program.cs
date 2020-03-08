@@ -67,9 +67,10 @@ namespace KarthagoCharacterGeneratorTool
         {
             // Create a new MigraDoc document
             var document = new Document();
-            document.Info.Title = "Hello, MigraDoc";
-            document.Info.Subject = "Demonstrates an excerpt of the capabilities of MigraDoc.";
-            document.Info.Author = "Stefan Lange";
+            document.Info.Title = "Charaktere Karten";
+            document.Info.Subject = "Die Charakterkarten des spiels";
+            document.Info.Author = "Arbeitstitel Karthago";
+            document.Info.Keywords = "Karten, Charakter, Karthago";
 
             document.DefaultPageSetup.PageFormat = PageFormat.A6;
 

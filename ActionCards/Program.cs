@@ -67,17 +67,16 @@ namespace ActionCards
 
         public static PdfDocument CreateDocument(IEnumerable<CardData> cards, DateTime fileChanged)
         {
-
-
             var pageWdith = XUnit.FromInch(2.5);
             var pageHeight = XUnit.FromInch(3.5);
 
 
             PdfDocument document = new PdfDocument();
-            document.Info.Title = "PDFsharp XGraphic Sample";
-            document.Info.Author = "Stefan Lange";
-            document.Info.Subject = "Created with code snippets that show the use of graphical functions";
-            document.Info.Keywords = "PDFsharp, XGraphics";
+            document.Info.Title = "Aktions Karten";
+            document.Info.Subject = "Die Aktionskarten des spiels";
+            document.Info.Author = "Arbeitstitel Karthago";
+            document.Info.Keywords = "Karten, Aktion, Karthago";
+            
 
             var maxOccurenceOfCard = cards.Max(x => x.Metadata.Times);
             int counter = 0;
@@ -145,9 +144,9 @@ namespace ActionCards
 
                     // Create a new MigraDoc document
                     var doc = new Document();
-                    doc.Info.Title = "Hello, MigraDoc";
-                    doc.Info.Subject = "Demonstrates an excerpt of the capabilities of MigraDoc.";
-                    doc.Info.Author = "Stefan Lange";
+                    doc.Info.Title = "Aktions Karten";
+                    doc.Info.Subject = "Die Aktionskarten des spiels";
+                    doc.Info.Author = "Arbeitstitel Karthago";
 
 
                     doc.DefaultPageSetup.PageWidth = new Unit(pageWdith.Inch, UnitType.Inch);

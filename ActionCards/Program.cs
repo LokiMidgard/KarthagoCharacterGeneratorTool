@@ -47,10 +47,10 @@ namespace ActionCards
 
             doc.Parse(txt);
 
-
+            var lastChangeTime = System.IO.File.GetLastWriteTime(a);
 
             // Create a MigraDoc document
-            var document = CreateDocument(CardData.Create(doc).ToArray());
+            var document = CreateDocument(CardData.Create(doc).ToArray(), lastChangeTime);
 
             ////string ddl = MigraDoc.DocumentObjectModel.IO.DdlWriter.WriteToString(document);
             //MigraDoc.DocumentObjectModel.IO.DdlWriter.WriteToFile(document, "MigraDoc.mdddl");
@@ -65,7 +65,7 @@ namespace ActionCards
             document.Save(filename);
         }
 
-        public static PdfDocument CreateDocument(IEnumerable<CardData> cards)
+        public static PdfDocument CreateDocument(IEnumerable<CardData> cards, DateTime fileChanged)
         {
 
 
@@ -104,17 +104,28 @@ namespace ActionCards
 
 
 
-                    var costSize = new XSize(new XUnit(33, XGraphicsUnit.Millimeter), font.Height);
+                    var costSize = new XSize(new XUnit(23, XGraphicsUnit.Millimeter), font.Height);
 
                     var costMarginRight = new XUnit(5, XGraphicsUnit.Millimeter);
 
 
 
                     var costRect = new XRect(pageWdith - costSize.Width - costMarginRight, new XUnit(5, XGraphicsUnit.Millimeter), costSize.Width, costSize.Height);
+
+                    var actionRect = new XRect(costMarginRight, new XUnit(5, XGraphicsUnit.Millimeter), pageWdith - costMarginRight - costMarginRight, costSize.Height);
+
+                    gfx.DrawRoundedRectangle(XPens.Red, XBrushes.IndianRed, actionRect, new XSize(10, 10));
+                    gfx.DrawRoundedRectangle(XPens.Purple, XBrushes.MediumPurple, costRect, new XSize(10, 10));
+
+
                     gfx.DrawString($"{card.Metadata.Cost:n0} ¤", font, XBrushes.Black,
                       costRect, XStringFormats.CenterRight);
 
-                    gfx.DrawRoundedRectangle(XPens.Purple, costRect, new XSize(10, 10));
+                    var actionTextRect = actionRect;
+                    actionTextRect.Offset(new XUnit(3, XGraphicsUnit.Millimeter), 0);
+
+                    gfx.DrawString($"Aktion", font, XBrushes.Black,
+                      actionTextRect, XStringFormats.CenterLeft);
 
                     for (int i = 0; i < maxOccurenceOfCard; i++)
                     {
@@ -129,7 +140,7 @@ namespace ActionCards
 
                     var dateRec = new XRect(new XUnit(3, XGraphicsUnit.Millimeter), pageHeight - new XUnit(2.5, XGraphicsUnit.Millimeter), new XUnit(3, XGraphicsUnit.Millimeter), new XUnit(3, XGraphicsUnit.Millimeter));
                     var dateFont = new XFont("Verdana", 7, XFontStyle.Regular);
-                    gfx.DrawString(DateTime.Now.ToString(), dateFont, XBrushes.Gray, dateRec.TopLeft);
+                    gfx.DrawString(fileChanged.ToString(), dateFont, XBrushes.Gray, dateRec.TopLeft);
                     gfx.DrawString($"{counter}/{total}", dateFont, XBrushes.Gray, new XRect(0, 0, pageWdith - new XUnit(3, XGraphicsUnit.Millimeter), pageHeight - new XUnit(2.5, XGraphicsUnit.Millimeter)), XStringFormats.BottomRight);
 
                     // Create a new MigraDoc document
@@ -142,10 +153,10 @@ namespace ActionCards
                     doc.DefaultPageSetup.PageWidth = new Unit(pageWdith.Inch, UnitType.Inch);
                     doc.DefaultPageSetup.PageHeight = new Unit(pageHeight.Inch, UnitType.Inch);
 
-                    doc.DefaultPageSetup.LeftMargin = new Unit(0.3, UnitType.Centimeter);
-                    doc.DefaultPageSetup.RightMargin = new Unit(0.3, UnitType.Centimeter);
-                    doc.DefaultPageSetup.BottomMargin = new Unit(1.0, UnitType.Centimeter);
-                    doc.DefaultPageSetup.TopMargin = new Unit(1.5, UnitType.Centimeter);
+                    doc.DefaultPageSetup.LeftMargin = new Unit(5, UnitType.Millimeter);
+                    doc.DefaultPageSetup.RightMargin = new Unit(5, UnitType.Millimeter);
+                    doc.DefaultPageSetup.BottomMargin = new Unit(10, UnitType.Millimeter);
+                    doc.DefaultPageSetup.TopMargin = new Unit(15, UnitType.Millimeter);
 
                     DefineStyles(doc);
 

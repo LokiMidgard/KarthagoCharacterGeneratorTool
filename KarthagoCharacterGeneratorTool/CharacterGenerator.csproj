@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Toolkit.Parsers" Version="6.1.0-build.30.g13f8949741" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\dependencys\MigraDoc\MigraDoc\src\MigraDoc.DocumentObjectModel\MigraDoc.DocumentObjectModel.csproj" />
+    <ProjectReference Include="..\dependencys\MigraDoc\MigraDoc\src\MigraDoc.Rendering\MigraDoc.Rendering.csproj" />
+    <ProjectReference Include="..\dependencys\MigraDoc\PDFsharp\src\PdfSharp.Charting\PdfSharp.Charting.csproj" />
+    <ProjectReference Include="..\dependencys\MigraDoc\PDFsharp\src\PdfSharp\PdfSharp.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\Parsers\Parsers.csproj" />
+  </ItemGroup>
+
+</Project>

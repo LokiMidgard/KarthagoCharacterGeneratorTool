@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="fonts\BabelStone\BabelStoneRoman.ttf" />
+    <None Remove="fonts\CMU Serif\cmunbi.ttf" />
+    <None Remove="fonts\CMU Serif\cmunbx.ttf" />
+    <None Remove="fonts\CMU Serif\cmunrm.ttf" />
+    <None Remove="fonts\CMU Serif\cmunti.ttf" />
+    <None Remove="fonts\Code2003\Code200365k.ttf" />
+    <None Remove="fonts\Montreal\Montreal-Bold.ttf" />
+    <None Remove="fonts\Montreal\Montreal-Regular.ttf" />
+    <None Remove="fonts\Quivira\Quivira.otf" />
+    <None Remove="fonts\RomantiqueInitials.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="fonts\BabelStone\BabelStoneRoman.ttf" />
+    <EmbeddedResource Include="fonts\CMU Serif\cmunbi.ttf" />
+    <EmbeddedResource Include="fonts\CMU Serif\cmunbx.ttf" />
+    <EmbeddedResource Include="fonts\CMU Serif\cmunrm.ttf" />
+    <EmbeddedResource Include="fonts\CMU Serif\cmunti.ttf" />
+    <EmbeddedResource Include="fonts\Code2003\Code200365k.ttf" />
+    <EmbeddedResource Include="fonts\Montreal\Montreal-Bold.ttf" />
+    <EmbeddedResource Include="fonts\Montreal\Montreal-Regular.ttf" />
+    <EmbeddedResource Include="fonts\Quivira\Quivira.otf" />
+    <EmbeddedResource Include="fonts\RomantiqueInitials.ttf" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Toolkit.Parsers" Version="6.1.0-build.30.g13f8949741" />
+    <!--<PackageReference Include="PdfSharp.MigraDoc.Standard" Version="1.51.9" />-->
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\dependencys\MigraDoc\MigraDoc\src\MigraDoc.DocumentObjectModel\MigraDoc.DocumentObjectModel.csproj" />
+    <ProjectReference Include="..\dependencys\MigraDoc\MigraDoc\src\MigraDoc.Rendering\MigraDoc.Rendering.csproj" />
+    <ProjectReference Include="..\dependencys\MigraDoc\PDFsharp\src\PdfSharp.Charting\PdfSharp.Charting.csproj" />
+    <ProjectReference Include="..\dependencys\MigraDoc\PDFsharp\src\PdfSharp\PdfSharp.csproj" />
+  </ItemGroup>
+  
+</Project>

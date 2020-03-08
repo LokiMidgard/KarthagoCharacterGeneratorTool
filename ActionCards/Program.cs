@@ -6,6 +6,7 @@ using MigraDoc.DocumentObjectModel;
 using MigraDoc.DocumentObjectModel.Shapes.Charts;
 using MigraDoc.DocumentObjectModel.Tables;
 using MigraDoc.Rendering;
+using Parsers;
 using PdfSharp;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
@@ -28,20 +29,7 @@ namespace ActionCards
         private static async Task GenerateDocument(string a)
         {
 
-            var doc = MarkdownDocument.CreateBuilder()
-                            .AddBlockParser<HeaderBlock.HashParser>()
-                            .AddBlockParser<ListBlock.Parser>()
-                            .AddBlockParser<HorizontalRuleBlock.Parser>()
-                            .AddBlockParser<CardMetadataBlock.Parser>()
-
-                            .AddInlineParser<ItalicTextInline.ParserAsterix>()
-                            .AddInlineParser<ItalicTextInline.ParserUnderscore>()
-                            .AddInlineParser<BoldTextInline.ParserUnderscore>()
-                            .AddInlineParser<BoldTextInline.ParserAsterix>()
-                            .AddInlineParser<BoldItalicTextInline.ParserUnderscore>()
-                            .AddInlineParser<BoldItalicTextInline.ParserAsterix>()
-
-                            .Build();
+            var doc = Markdown.GetDefaultMarkdownDowcument();
 
             var txt = await System.IO.File.ReadAllTextAsync(a);
 
@@ -76,7 +64,7 @@ namespace ActionCards
             document.Info.Subject = "Die Aktionskarten des spiels";
             document.Info.Author = "Arbeitstitel Karthago";
             document.Info.Keywords = "Karten, Aktion, Karthago";
-            
+
 
             var maxOccurenceOfCard = cards.Max(x => x.Metadata.Times);
             int counter = 0;
@@ -157,7 +145,7 @@ namespace ActionCards
                     doc.DefaultPageSetup.BottomMargin = new Unit(10, UnitType.Millimeter);
                     doc.DefaultPageSetup.TopMargin = new Unit(15, UnitType.Millimeter);
 
-                    DefineStyles(doc);
+                    doc.DefineStyles();
 
                     //Cover.DefineCover(document);
                     //DefineTableOfContents(document);
@@ -293,82 +281,6 @@ namespace ActionCards
             }
         }
 
-        public class CardMetadataBlock : MarkdownBlock
-        {
-
-            public int Times { get; set; }
-            public int Cost { get; set; }
-
-            public new class Parser : Parser<CardMetadataBlock>
-            {
-                protected override BlockParseResult<CardMetadataBlock> ParseInternal(LineBlock markdown, int startLine, bool lineStartsNewParagraph, MarkdownDocument document)
-                {
-                    var line = markdown[startLine].Trim();
-
-                    if (line.Length == 0 || line[0] != '>')
-                        return null;
-
-                    line = line.Slice(1).TrimStart();
-
-                    var list = new List<uint>();
-
-                    uint currentCost = 0;
-
-                    int? times = null;
-                    int? cost = null;
-
-                    while (line.Length != 0)
-                    {
-
-
-                        var end = line.IndexOfNexWhiteSpace();
-                        if (end == -1)
-                            end = line.Length;
-
-                        var current = line.Slice(0, end).Trim();
-
-
-                        var type = current[^1];
-
-                        if (type != 'x' && type != '$')
-                            return null;
-
-                        if (type == 'x')
-                        {
-                            if (times.HasValue)
-                                return null;
-                            if (!int.TryParse(current.Slice(0, current.Length - 1), out var value))
-                                return null;
-
-                            times = value;
-                        }
-                        else if (type == '$')
-                        {
-                            if (cost.HasValue)
-                                return null;
-                            if (!int.TryParse(current.Slice(0, current.Length - 1), System.Globalization.NumberStyles.Any, new System.Globalization.CultureInfo("de"), out var value))
-                                return null;
-
-                            cost = value;
-                        }
-
-
-                        line = line.Slice(end).Trim();
-                    }
-
-                    if (cost is null || times is null)
-                        return null;
-
-                    var result = new CardMetadataBlock()
-                    {
-                        Cost = cost.Value,
-                        Times = times.Value,
-                    };
-                    return BlockParseResult.Create(result, startLine, 1);
-                }
-            }
-
-        }
 
         private static void HandleBlocks(IEnumerable<MarkdownBlock> blocks, Document document, Paragraph paragraph = null)
         {
@@ -393,8 +305,8 @@ namespace ActionCards
                     case ListBlock list:
                         MakeList(paragraph, list, document);
                         break;
-                        //case CardMetadataBlock w:
-                        //    MakeTable(paragraph, w, document);
+                    case WorkerBlock w:
+                        w.MakeWorkerTable(paragraph, document);
                         break;
                     case HorizontalRuleBlock hr:
                         lineBreak = true;
@@ -510,117 +422,13 @@ namespace ActionCards
             paragraph.Style = $"Heading{header.HeaderLevel}";
             paragraph.AddBookmark("Paragraphs");
 
-            FillInlines(paragraph, header.Inlines);
+            header.Inlines.FillInlines(paragraph);
         }
         private static void MakeParagraph(Paragraph paragraph, ParagraphBlock paragraphBlock, Document document)
         {
-            FillInlines(paragraph, paragraphBlock.Inlines);
+            paragraphBlock.Inlines.FillInlines(paragraph);
         }
 
-        private static void FillInlines(Paragraph paragraph, IList<MarkdownInline> inlines, TextFormat format = default)
-        {
-            foreach (var inline in inlines)
-            {
-                switch (inline)
-                {
-                    case TextRunInline text:
-                        paragraph.AddFormattedText(text.Text, format);
-                        break;
-                    case BoldTextInline text:
-                        FillInlines(paragraph, text.Inlines, format | TextFormat.Bold);
-                        break;
-                    case ItalicTextInline text:
-                        FillInlines(paragraph, text.Inlines, format | TextFormat.Italic);
-                        break;
-                    case BoldItalicTextInline text:
-                        FillInlines(paragraph, text.Inlines, format | TextFormat.Bold | TextFormat.Italic);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Defines the styles used in the document.
-        /// </summary>
-        public static void DefineStyles(Document document)
-        {
-            // Get the predefined style Normal.
-            var style = document.Styles["Normal"];
-            // Because all styles are derived from Normal, the next line changes the 
-            // font of the whole document. Or, more exactly, it changes the font of
-            // all styles and paragraphs that do not redefine the font.
-            style.Font.Name = "Times New Roman";
-
-            // Heading1 to Heading9 are predefined styles with an outline level. An outline level
-            // other than OutlineLevel.BodyText automatically creates the outline (or bookmarks) 
-            // in PDF.
-
-            style = document.Styles["Heading1"];
-            style.Font.Name = "Tahoma";
-            style.Font.Size = 14;
-            style.Font.Bold = true;
-            style.Font.Color = Colors.DarkBlue;
-            style.ParagraphFormat.PageBreakBefore = false;
-            style.ParagraphFormat.SpaceAfter = 6;
-
-            style = document.Styles["Heading2"];
-            style.Font.Size = 12;
-            style.Font.Bold = true;
-            style.ParagraphFormat.PageBreakBefore = false;
-            style.ParagraphFormat.SpaceBefore = 6;
-            style.ParagraphFormat.SpaceAfter = 6;
-
-            style = document.Styles["Heading3"];
-            style.Font.Size = 10;
-            style.Font.Bold = true;
-            style.Font.Italic = true;
-            style.ParagraphFormat.SpaceBefore = 6;
-            style.ParagraphFormat.SpaceAfter = 3;
-
-            style = document.Styles[StyleNames.Header];
-            style.ParagraphFormat.AddTabStop("16cm", TabAlignment.Right);
-
-            style = document.Styles[StyleNames.Footer];
-            style.ParagraphFormat.AddTabStop("8cm", TabAlignment.Center);
-
-            // Create a new style called TextBox based on style Normal
-            style = document.Styles.AddStyle("TextBox", "Normal");
-            style.ParagraphFormat.Alignment = ParagraphAlignment.Justify;
-            style.ParagraphFormat.Borders.Width = 2.5;
-            style.ParagraphFormat.Borders.Distance = "3pt";
-            style.ParagraphFormat.Shading.Color = Colors.SkyBlue;
-
-            // Create a new style called TOC based on style Normal
-            style = document.Styles.AddStyle("TOC", "Normal");
-            style.ParagraphFormat.AddTabStop("16cm", TabAlignment.Right, TabLeader.Dots);
-            style.ParagraphFormat.Font.Color = Colors.Blue;
-
-            // Create a new style called TOC based on style Normal
-            style = document.Styles.AddStyle("table", "Normal");
-            style.ParagraphFormat.Alignment = ParagraphAlignment.Center;
-
-            // Bullit
-            var unorderedlist = document.AddStyle("UnorderedList", "Normal");
-            var listInfo = new ListInfo();
-            listInfo.ListType = ListType.BulletList1;
-            unorderedlist.ParagraphFormat.ListInfo = listInfo;
-            unorderedlist.ParagraphFormat.LeftIndent = "1cm";
-            unorderedlist.ParagraphFormat.FirstLineIndent = "-0.5cm";
-            unorderedlist.ParagraphFormat.SpaceAfter = 0;
-
-            var orderedlist = document.AddStyle("OrderedList", "UnorderedList");
-            orderedlist.ParagraphFormat.ListInfo.ListType = ListType.NumberList1;
-
-            // for list spacing (since MigraDoc doesn't provide a list object that we can target)
-            var listStart = document.AddStyle("ListStart", "Normal");
-            listStart.ParagraphFormat.SpaceAfter = 0;
-            listStart.ParagraphFormat.LineSpacing = 0.5;
-            var listEnd = document.AddStyle("ListEnd", "ListStart");
-            listEnd.ParagraphFormat.LineSpacing = 1;
-
-        }
 
         static void DefineContentSection(Document document)
         {

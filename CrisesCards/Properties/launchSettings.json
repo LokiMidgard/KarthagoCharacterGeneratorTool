@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CrisesCards": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Users\\patri\\Arbeitstitel-Karthago\\_Aktuelle Regeln\\Krisen-Seuchen.md\""
+    }
+  }
+}

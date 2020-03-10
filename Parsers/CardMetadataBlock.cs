@@ -14,6 +14,7 @@ namespace Parsers
         public int Times { get; set; }
         public int Cost { get; set; }
         public int Duration { get; set; }
+        public string Type { get; set; }
 
         public new class Parser : Parser<CardMetadataBlock>
         {
@@ -33,21 +34,30 @@ namespace Parsers
                 int? times = null;
                 int? cost = null;
                 int? duration = null;
+                string? cardType = null;
 
                 while (line.Length != 0)
                 {
-
-
-                    var end = line.IndexOfNexWhiteSpace();
-                    if (end == -1)
-                        end = line.Length;
+                    int end;
+                    if (line[0] == '(')
+                    {
+                        end = line.FindClosingBrace() + 1;
+                        if (end == 0)
+                            return null;
+                    }
+                    else
+                    {
+                        end = line.IndexOfNexWhiteSpace();
+                        if (end == -1)
+                            end = line.Length;
+                    }
 
                     var current = line.Slice(0, end).Trim();
 
 
                     var type = current[^1];
 
-                    if (type != 'x' && type != '$' && type != 't')
+                    if (type != 'x' && type != '$' && type != 't' && type != ')')
                         return null;
 
                     if (type == 'x')
@@ -77,24 +87,26 @@ namespace Parsers
 
                         duration = value;
                     }
+                    else if (type == ')')
+                    {
+                        if (cardType != null)
+                            return null;
+                        cardType = current.Slice(1, current.Length - 2).ToString();
+                    }
 
 
                     line = line.Slice(end).Trim();
                 }
 
-                if (times is null)
-                    times = 1;
-                if (duration is null)
-                    duration = 1;
-
-                if (cost is null || times is null)
+                if (cost is null && times is null && duration is null && cardType is null)
                     return null;
 
                 var result = new CardMetadataBlock()
                 {
-                    Cost = cost.Value,
-                    Times = times.Value,
-                    Duration = duration.Value,
+                    Cost = cost ?? 0,
+                    Times = times ?? 1,
+                    Duration = duration ?? 1,
+                    Type = cardType,
                 };
                 return BlockParseResult.Create(result, startLine, 1);
             }

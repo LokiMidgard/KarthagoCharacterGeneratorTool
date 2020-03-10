@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MigraDoc.Rendering", "depen
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PdfSharp.Charting", "dependencys\MigraDoc\PDFsharp\src\PdfSharp.Charting\PdfSharp.Charting.csproj", "{61BDE2D8-FA7C-4F10-A167-260D28592CF3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrisesCards", "CrisesCards\CrisesCards.csproj", "{B0070A46-71CA-487A-900C-3543E0B31BEC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,10 @@ Global
 		{61BDE2D8-FA7C-4F10-A167-260D28592CF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61BDE2D8-FA7C-4F10-A167-260D28592CF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61BDE2D8-FA7C-4F10-A167-260D28592CF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0070A46-71CA-487A-900C-3543E0B31BEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0070A46-71CA-487A-900C-3543E0B31BEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0070A46-71CA-487A-900C-3543E0B31BEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0070A46-71CA-487A-900C-3543E0B31BEC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

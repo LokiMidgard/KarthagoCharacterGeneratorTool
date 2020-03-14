@@ -3,25 +3,25 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29728.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharacterGenerator", "KarthagoCharacterGeneratorTool\CharacterGenerator.csproj", "{E284B3A0-0C2B-48D8-9AA7-00F838CFEC77}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CharacterGenerator", "KarthagoCharacterGeneratorTool\CharacterGenerator.csproj", "{E284B3A0-0C2B-48D8-9AA7-00F838CFEC77}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActionCards", "ActionCards\ActionCards.csproj", "{E91FABA5-4762-49A4-BC41-3371CEE2255C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ActionCards", "ActionCards\ActionCards.csproj", "{E91FABA5-4762-49A4-BC41-3371CEE2255C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SienceCards", "SienceCards\SienceCards.csproj", "{7D47B7C7-719F-483B-9FBE-041F9BB445E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SienceCards", "SienceCards\SienceCards.csproj", "{7D47B7C7-719F-483B-9FBE-041F9BB445E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parsers", "Parsers\Parsers.csproj", "{0C1D7A80-6245-448D-920A-11E835C32E8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Parsers", "Parsers\Parsers.csproj", "{0C1D7A80-6245-448D-920A-11E835C32E8F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencys", "Dependencys", "{E85D5546-158F-49A3-B4A4-031A106545E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdfSharp", "dependencys\MigraDoc\PDFsharp\src\PdfSharp\PdfSharp.csproj", "{5A6055BC-BF86-4FDD-9F62-0109DB7A303B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PdfSharp", "dependencys\MigraDoc\PDFsharp\src\PdfSharp\PdfSharp.csproj", "{5A6055BC-BF86-4FDD-9F62-0109DB7A303B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MigraDoc.DocumentObjectModel", "dependencys\MigraDoc\MigraDoc\src\MigraDoc.DocumentObjectModel\MigraDoc.DocumentObjectModel.csproj", "{6318A852-EF6B-486F-8547-3D7E736D7943}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MigraDoc.DocumentObjectModel", "dependencys\MigraDoc\MigraDoc\src\MigraDoc.DocumentObjectModel\MigraDoc.DocumentObjectModel.csproj", "{6318A852-EF6B-486F-8547-3D7E736D7943}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MigraDoc.Rendering", "dependencys\MigraDoc\MigraDoc\src\MigraDoc.Rendering\MigraDoc.Rendering.csproj", "{A0B7940A-0BFC-476D-A204-73F7C0F88FDE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MigraDoc.Rendering", "dependencys\MigraDoc\MigraDoc\src\MigraDoc.Rendering\MigraDoc.Rendering.csproj", "{A0B7940A-0BFC-476D-A204-73F7C0F88FDE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PdfSharp.Charting", "dependencys\MigraDoc\PDFsharp\src\PdfSharp.Charting\PdfSharp.Charting.csproj", "{61BDE2D8-FA7C-4F10-A167-260D28592CF3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrisesCards", "CrisesCards\CrisesCards.csproj", "{B0070A46-71CA-487A-900C-3543E0B31BEC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrisesCards", "CrisesCards\CrisesCards.csproj", "{B0070A46-71CA-487A-900C-3543E0B31BEC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

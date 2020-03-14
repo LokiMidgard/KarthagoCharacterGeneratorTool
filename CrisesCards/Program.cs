@@ -23,16 +23,21 @@ namespace CrisesCards
     class Program
     {
 
+        private static int count;
+
         static async Task Main(string[] args)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
+            Console.WriteLine($"Will Work on {args.Length} Jobs in parrallel.");
 
             await Task.WhenAll(args.Select(a => GenerateDocument(a)));
         }
 
         private static async Task GenerateDocument(string a)
         {
+            var currentInstance = System.Threading.Interlocked.Increment(ref count);
+
             var doc = Markdown.GetDefaultMarkdownDowcument();
 
             var txt = await System.IO.File.ReadAllTextAsync(a);
@@ -42,7 +47,9 @@ namespace CrisesCards
             var lastChangeTime = System.IO.File.GetLastWriteTime(a);
 
             // Create a MigraDoc document
-            var document = CreateDocument(CardData.Create(doc).ToArray(), lastChangeTime);
+            var cards = CardData.Create(doc).ToArray();
+            Console.WriteLine($"{currentInstance}: Found {cards.Length} cards.");
+            var document = CreateDocument(cards, lastChangeTime, currentInstance);
 
             ////string ddl = MigraDoc.DocumentObjectModel.IO.DdlWriter.WriteToString(document);
             //MigraDoc.DocumentObjectModel.IO.DdlWriter.WriteToFile(document, "MigraDoc.mdddl");
@@ -54,12 +61,14 @@ namespace CrisesCards
 
             // Save the document...
             var filename = System.IO.Path.ChangeExtension(a, ".pdf");
+            Console.WriteLine($"{currentInstance}: Saving {filename}...");
             document.Save(filename);
+            Console.WriteLine($"{currentInstance}: Finished!");
         }
 
 
 
-        public static PdfDocument CreateDocument(IEnumerable<CardData> cards, DateTime fileChanged)
+        public static PdfDocument CreateDocument(IEnumerable<CardData> cards, DateTime fileChanged, int currentInstance)
         {
             var pageWdith = XUnit.FromInch(2.5);
             var pageHeight = XUnit.FromInch(3.5);
@@ -74,136 +83,143 @@ namespace CrisesCards
 
             //var maxOccurenceOfCard = cards.Max(x => x.Metadata.Times);
             int counter = 0;
-            var total = cards.Count();
+            var total = cards.Sum(x => x.Metadata.Times);
             string currentCardType = null;
             foreach (var card in cards)
             {
                 currentCardType = card.Metadata.Type ?? currentCardType;
                 if (currentCardType is null)
+                {
+                    Console.WriteLine($"{currentInstance}: Did not found card metadata. SKIP");
                     continue;
+                }
+                var header = card.Content.FirstOrDefault(x => x is HeaderBlock);
+                Console.WriteLine($"{currentInstance}: Working on <{header?.ToString() ?? "UNKNOWN TITLE"}> with {card.Metadata.Times} instances.");
+                for (int i = 0; i < card.Metadata.Times; i++)
+                {
+                    Console.Write($"{i + 1}...");
+                    counter++;
+
+                    PdfPage page = document.AddPage();
+
+                    page.Width = new XUnit(pageWdith.Millimeter, XGraphicsUnit.Millimeter);
+                    page.Height = new XUnit(pageHeight.Millimeter, XGraphicsUnit.Millimeter);
+
+
+                    XGraphics gfx = XGraphics.FromPdfPage(page);
+                    // HACK²
+                    gfx.MUH = PdfFontEncoding.Unicode;
+                    //gfx.MFEH = PdfFontEmbedding.Default;
+
+                    XFont font = new XFont("Verdana", 13, XFontStyle.Regular);
 
 
 
-                counter++;
+                    var costSize = new XSize(new XUnit(23, XGraphicsUnit.Millimeter), font.Height);
 
-                PdfPage page = document.AddPage();
-
-                page.Width = new XUnit(pageWdith.Millimeter, XGraphicsUnit.Millimeter);
-                page.Height = new XUnit(pageHeight.Millimeter, XGraphicsUnit.Millimeter);
+                    var costMarginRight = new XUnit(5, XGraphicsUnit.Millimeter);
 
 
-                XGraphics gfx = XGraphics.FromPdfPage(page);
-                // HACK²
-                gfx.MUH = PdfFontEncoding.Unicode;
-                //gfx.MFEH = PdfFontEmbedding.Default;
+                    //gfx.RotateTransform(90);
 
-                XFont font = new XFont("Verdana", 13, XFontStyle.Regular);
+                    //var costRect = new XRect(pageWdith - costSize.Width - costMarginRight, new XUnit(5, XGraphicsUnit.Millimeter), costSize.Width, costSize.Height);
+                    //var durationRect = costRect;
+                    //durationRect.Height *= 2.1;
 
-
-
-                var costSize = new XSize(new XUnit(23, XGraphicsUnit.Millimeter), font.Height);
-
-                var costMarginRight = new XUnit(5, XGraphicsUnit.Millimeter);
+                    //gfx.DrawRoundedRectangle(XPens.Orange, XBrushes.LightYellow, durationRect, new XSize(10, 10));
+                    //gfx.DrawRoundedRectangle(XPens.Purple, XBrushes.MediumPurple, costRect, new XSize(10, 10));
 
 
-                //gfx.RotateTransform(90);
+                    //var costTextRect = costRect;
+                    //costTextRect.Width -= new XUnit(1, XGraphicsUnit.Millimeter);
+                    //gfx.DrawString($"{card.Metadata.Cost:n0} ¤", font, XBrushes.Black,
+                    //  costTextRect, XStringFormats.CenterRight);
 
-                //var costRect = new XRect(pageWdith - costSize.Width - costMarginRight, new XUnit(5, XGraphicsUnit.Millimeter), costSize.Width, costSize.Height);
-                //var durationRect = costRect;
-                //durationRect.Height *= 2.1;
+                    //var subfont = Markdown.GetSubstituteFont("⌛");
+                    //subfont = new XFont(subfont.Name, font.Size);
 
-                //gfx.DrawRoundedRectangle(XPens.Orange, XBrushes.LightYellow, durationRect, new XSize(10, 10));
-                //gfx.DrawRoundedRectangle(XPens.Purple, XBrushes.MediumPurple, costRect, new XSize(10, 10));
+                    //var durationTextRect = durationRect;
+                    //durationTextRect.Width -= new XUnit(1, XGraphicsUnit.Millimeter);
 
-
-                //var costTextRect = costRect;
-                //costTextRect.Width -= new XUnit(1, XGraphicsUnit.Millimeter);
-                //gfx.DrawString($"{card.Metadata.Cost:n0} ¤", font, XBrushes.Black,
-                //  costTextRect, XStringFormats.CenterRight);
-
-                //var subfont = Markdown.GetSubstituteFont("⌛");
-                //subfont = new XFont(subfont.Name, font.Size);
-
-                //var durationTextRect = durationRect;
-                //durationTextRect.Width -= new XUnit(1, XGraphicsUnit.Millimeter);
-
-                //gfx.DrawString($"{card.Metadata.Duration:n0} ⌛", subfont, XBrushes.Black,
-                //    durationTextRect, XStringFormats.BottomRight);
+                    //gfx.DrawString($"{card.Metadata.Duration:n0} ⌛", subfont, XBrushes.Black,
+                    //    durationTextRect, XStringFormats.BottomRight);
 
 
-                var actionRect = new XRect(costMarginRight, new XUnit(5, XGraphicsUnit.Millimeter), pageHeight * 2, costSize.Height * 2);
-                var actionTextRect = actionRect;
-                actionTextRect.Height = costSize.Height;
-                actionTextRect.Offset(new XUnit(3, XGraphicsUnit.Millimeter), 0);
+                    var actionRect = new XRect(costMarginRight, new XUnit(5, XGraphicsUnit.Millimeter), pageHeight * 2, costSize.Height * 2);
+                    var actionTextRect = actionRect;
+                    actionTextRect.Height = costSize.Height;
+                    actionTextRect.Offset(new XUnit(3, XGraphicsUnit.Millimeter), 0);
 
-                gfx.TranslateTransform(new XUnit(3, XGraphicsUnit.Millimeter), 0);
-                gfx.RotateAtTransform(90, actionRect.TopLeft);
+                    gfx.TranslateTransform(new XUnit(3, XGraphicsUnit.Millimeter), 0);
+                    gfx.RotateAtTransform(90, actionRect.TopLeft);
 
 
 
-                gfx.DrawRoundedRectangle(XPens.MidnightBlue, XBrushes.DarkSlateBlue, actionRect, new XSize(10, 10));
-                gfx.DrawString(currentCardType, font, XBrushes.White,
-                actionTextRect, XStringFormats.CenterLeft);
+                    gfx.DrawRoundedRectangle(XPens.MidnightBlue, XBrushes.DarkSlateBlue, actionRect, new XSize(10, 10));
+                    gfx.DrawString(currentCardType, font, XBrushes.White,
+                    actionTextRect, XStringFormats.CenterLeft);
 
-                gfx.RotateAtTransform(-90, actionRect.TopLeft);
-                gfx.TranslateTransform(new XUnit(-3, XGraphicsUnit.Millimeter), 0);
+                    gfx.RotateAtTransform(-90, actionRect.TopLeft);
+                    gfx.TranslateTransform(new XUnit(-3, XGraphicsUnit.Millimeter), 0);
 
-                var circle = new XRect(new XUnit(-3, XGraphicsUnit.Millimeter), pageHeight - new XUnit(10, XGraphicsUnit.Millimeter), new XUnit(13, XGraphicsUnit.Millimeter), new XUnit(13, XGraphicsUnit.Millimeter));
+                    var circle = new XRect(new XUnit(-3, XGraphicsUnit.Millimeter), pageHeight - new XUnit(10, XGraphicsUnit.Millimeter), new XUnit(13, XGraphicsUnit.Millimeter), new XUnit(13, XGraphicsUnit.Millimeter));
 
-                gfx.DrawEllipse(XPens.MidnightBlue,XBrushes.White, circle);
+                    gfx.DrawEllipse(XPens.MidnightBlue, XBrushes.White, circle);
 
-                gfx.DrawString($"{card.Metadata.Duration:n0}", font, XBrushes.Black,
-                    circle, XStringFormats.Center);
-
-
-                var dateRec = new XRect(new XUnit(13, XGraphicsUnit.Millimeter), pageHeight - new XUnit(2.5, XGraphicsUnit.Millimeter), new XUnit(13, XGraphicsUnit.Millimeter), new XUnit(3, XGraphicsUnit.Millimeter));
-                var dateFont = new XFont("Verdana", 7, XFontStyle.Regular);
-                gfx.DrawString(fileChanged.ToString(), dateFont, XBrushes.Gray, dateRec.TopLeft);
-                gfx.DrawString($"{counter}/{total}", dateFont, XBrushes.Gray, new XRect(0, 0, pageWdith - new XUnit(3, XGraphicsUnit.Millimeter), pageHeight - new XUnit(2.5, XGraphicsUnit.Millimeter)), XStringFormats.BottomRight);
-
-                // Create a new MigraDoc document
-                var doc = new Document();
-                doc.Info.Title = "Forschungs Karten";
-                doc.Info.Subject = "Die Forschungskarten des spiels";
-                doc.Info.Author = "Arbeitstitel Karthago";
+                    gfx.DrawString($"{card.Metadata.Duration:n0}", font, XBrushes.Black,
+                        circle, XStringFormats.Center);
 
 
-                doc.DefaultPageSetup.PageWidth = new Unit(pageWdith.Inch, UnitType.Inch);
-                doc.DefaultPageSetup.PageHeight = new Unit(pageHeight.Inch, UnitType.Inch);
+                    var dateRec = new XRect(new XUnit(13, XGraphicsUnit.Millimeter), pageHeight - new XUnit(2.5, XGraphicsUnit.Millimeter), new XUnit(13, XGraphicsUnit.Millimeter), new XUnit(3, XGraphicsUnit.Millimeter));
+                    var dateFont = new XFont("Verdana", 7, XFontStyle.Regular);
+                    gfx.DrawString(fileChanged.ToString(), dateFont, XBrushes.Gray, dateRec.TopLeft);
+                    gfx.DrawString($"{counter}/{total}", dateFont, XBrushes.Gray, new XRect(0, 0, pageWdith - new XUnit(3, XGraphicsUnit.Millimeter), pageHeight - new XUnit(2.5, XGraphicsUnit.Millimeter)), XStringFormats.BottomRight);
 
-                doc.DefaultPageSetup.LeftMargin = new Unit(13, UnitType.Millimeter);
-                doc.DefaultPageSetup.RightMargin = new Unit(5, UnitType.Millimeter);
-                doc.DefaultPageSetup.BottomMargin = new Unit(10, UnitType.Millimeter);
-                doc.DefaultPageSetup.TopMargin = new Unit(6, UnitType.Millimeter);
-
-                doc.DefineStyles();
-
-                //Cover.DefineCover(document);
-                //DefineTableOfContents(document);
-
-                DefineContentSection(doc);
-                HandleBlocks(card.Content, doc);
+                    // Create a new MigraDoc document
+                    var doc = new Document();
+                    doc.Info.Title = "Forschungs Karten";
+                    doc.Info.Subject = "Die Forschungskarten des spiels";
+                    doc.Info.Author = "Arbeitstitel Karthago";
 
 
-                // Create a renderer and prepare (=layout) the document
-                MigraDoc.Rendering.DocumentRenderer docRenderer = new DocumentRenderer(doc);
-                docRenderer.PrepareDocument();
+                    doc.DefaultPageSetup.PageWidth = new Unit(pageWdith.Inch, UnitType.Inch);
+                    doc.DefaultPageSetup.PageHeight = new Unit(pageHeight.Inch, UnitType.Inch);
 
-                //XRect rect = new XRect(new XPoint(Unit.FromCentimeter(1).Value, Unit.FromCentimeter(3).Value), new XSize((pageWdith.Value - Unit.FromCentimeter(2).Value), (pageHeight.Value - Unit.FromCentimeter(4).Value)));
+                    doc.DefaultPageSetup.LeftMargin = new Unit(13, UnitType.Millimeter);
+                    doc.DefaultPageSetup.RightMargin = new Unit(5, UnitType.Millimeter);
+                    doc.DefaultPageSetup.BottomMargin = new Unit(10, UnitType.Millimeter);
+                    doc.DefaultPageSetup.TopMargin = new Unit(6, UnitType.Millimeter);
 
-                // Use BeginContainer / EndContainer for simplicity only. You can naturaly use you own transformations.
-                //XGraphicsContainer container = gfx.BeginContainer(rect, A4Rect, XGraphicsUnit.Point);
+                    doc.DefineStyles();
 
-                // Draw page border for better visual representation
-                //gfx.DrawRectangle(XPens.LightGray, A4Rect);
+                    //Cover.DefineCover(document);
+                    //DefineTableOfContents(document);
 
-                // Render the page. Note that page numbers start with 1.
-                docRenderer.RenderPage(gfx, 1);
+                    DefineContentSection(doc);
+                    HandleBlocks(card.Content, doc);
 
-                // Note: The outline and the hyperlinks (table of content) does not work in the produced PDF document.
 
-                // Pop the previous graphical state
-                //gfx.EndContainer(container);
+                    // Create a renderer and prepare (=layout) the document
+                    MigraDoc.Rendering.DocumentRenderer docRenderer = new DocumentRenderer(doc);
+                    docRenderer.PrepareDocument();
+
+                    //XRect rect = new XRect(new XPoint(Unit.FromCentimeter(1).Value, Unit.FromCentimeter(3).Value), new XSize((pageWdith.Value - Unit.FromCentimeter(2).Value), (pageHeight.Value - Unit.FromCentimeter(4).Value)));
+
+                    // Use BeginContainer / EndContainer for simplicity only. You can naturaly use you own transformations.
+                    //XGraphicsContainer container = gfx.BeginContainer(rect, A4Rect, XGraphicsUnit.Point);
+
+                    // Draw page border for better visual representation
+                    //gfx.DrawRectangle(XPens.LightGray, A4Rect);
+
+                    // Render the page. Note that page numbers start with 1.
+                    docRenderer.RenderPage(gfx, 1);
+
+                    // Note: The outline and the hyperlinks (table of content) does not work in the produced PDF document.
+
+                    // Pop the previous graphical state
+                    //gfx.EndContainer(container);
+                }
+                Console.WriteLine(" Finished card.");
             }
 
 

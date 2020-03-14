@@ -1,6 +1,7 @@
 ﻿using Microsoft.Toolkit.Parsers.Markdown;
 using Microsoft.Toolkit.Parsers.Markdown.Blocks;
 using Microsoft.Toolkit.Parsers.Markdown.Helpers;
+using Microsoft.Toolkit.Parsers.Markdown.Inlines;
 using MigraDoc.DocumentObjectModel;
 using MigraDoc.DocumentObjectModel.Tables;
 using System;
@@ -18,7 +19,11 @@ namespace Parsers
 
         protected override int Count => this.WorkerCosts.Count;
 
-        protected override string GetString(int index) => this.WorkerCosts[index].ToString();
+        protected override void GetString(int index, Paragraph paragraph)
+        {
+            paragraph.AddText(this.WorkerCosts[index].ToString());
+        }
+
 
         public new class Parser : Parser<WorkerCostBlock>
         {
@@ -83,7 +88,7 @@ namespace Parsers
 
         protected abstract int Count { get; }
 
-        protected abstract string GetString(int index);
+        protected abstract void GetString(int index, Paragraph paragraph);
 
         public void MakeWorkerTable(Paragraph paragraph, Document document, Unit? blockSize = null)
         {
@@ -123,9 +128,11 @@ namespace Parsers
                 }
 
                 var cell = row.Cells[i % numberOfColumns];
-                var content = this.GetString(i);
-                if (!string.IsNullOrWhiteSpace(content))
-                    cell.AddParagraph(content);
+
+                var p = cell.AddParagraph();
+                this.GetString(i, p);
+
+
 
 
                 if (i % numberOfColumns == numberOfColumns - 1)
@@ -150,9 +157,12 @@ namespace Parsers
     {
         protected override int Count => this.WorkerText.Count;
 
-        protected override string GetString(int index) => this.WorkerText[index];
+        protected override void GetString(int index, Paragraph paragraph)
+        {
+            this.WorkerText[index].FillInlines(paragraph);
+        }
 
-        public IList<string> WorkerText { get; set; }
+        public IList<IEnumerable<MarkdownInline>> WorkerText { get; set; }
 
         public new class Parser : Parser<WorkerTextBlock>
         {
@@ -165,7 +175,7 @@ namespace Parsers
 
                 line = line.Slice(2).TrimStart();
 
-                var list = new List<string>();
+                var list = new List<IEnumerable<MarkdownInline>>();
 
 
                 while (line.Length != 0)
@@ -193,7 +203,7 @@ namespace Parsers
 
                     for (var i = 0; i < count; i++)
                     {
-                        list.Add(scccond.ToString());
+                        list.Add(document.ParseInlineChildren(scccond, true, true));
                     }
 
                     line = line.Slice(current.Length).Trim();

@@ -2,6 +2,7 @@
 using Microsoft.Toolkit.Parsers.Markdown.Blocks;
 using Microsoft.Toolkit.Parsers.Markdown.Inlines;
 using MigraDoc.DocumentObjectModel;
+using MigraDoc.DocumentObjectModel.Tables;
 using PdfSharp.Drawing;
 using PdfSharp.Fonts;
 using System.Collections.Generic;
@@ -56,6 +57,13 @@ namespace Parsers
             style.Font.Name = "Times New Roman";
             style.Font.Size = 9;
             style.ParagraphFormat.SpaceAfter = 3;
+
+            // Create a new style called NoSpacing based on style Normal
+            style = document.Styles.AddStyle("NoSpacing", "Normal");
+            style.ParagraphFormat.SpaceAfter = 0;
+            style.ParagraphFormat.SpaceBefore = 0;
+            style.ParagraphFormat.LineSpacing = 0;
+
             // Heading1 to Heading9 are predefined styles with an outline level. An outline level
             // other than OutlineLevel.BodyText automatically creates the outline (or bookmarks) 
             // in PDF.
@@ -136,6 +144,162 @@ namespace Parsers
 
         }
 
+        public static void MakeList(this ListBlock list, Paragraph paragraph, Document document)
+        {
+            for (var i = 0; i < list.Items.Count; i++)
+            {
+                paragraph ??= document.LastSection.AddParagraph();
+
+                var listStyle = list.Style == ListStyle.Bulleted
+                    ? "UnorderedList"
+                    : "OrderedList";
+
+                //var section = (Section)parent;
+                var isFirst = i == 0;
+                var isLast = i == list.Items.Count - 1;
+
+                // if this is the first item add the ListStart paragraph
+                //if (isFirst)
+                //{
+                //    var p = section.AddParagraph();
+                //    p.Style = "ListStart";
+                //}
+
+                var listItem = paragraph;
+                listItem.Style = listStyle;
+
+                var current = list.Items[i];
+                HandleBlocks(current.Blocks, document, paragraph);
+
+
+                // disable continuation if this is the first list item
+                listItem.Format.ListInfo.ContinuePreviousList = !isFirst;
+
+                // if the this is the last item add the ListEnd paragraph
+                //if (isLast)
+                //{
+                //    var p = section.AddParagraph();
+                //    p.Style = "ListEnd";
+                //}
+                paragraph = null;
+            }
+
+
+
+
+        }
+
+        public static void MakeHeader(this HeaderBlock header, Paragraph paragraph, Document document)
+        {
+            paragraph.Style = $"Heading{header.HeaderLevel}";
+            paragraph.AddBookmark("Paragraphs");
+
+            header.Inlines.FillInlines(paragraph);
+        }
+        public static void MakeParagraph(this ParagraphBlock paragraphBlock, Paragraph paragraph, Document document)
+        {
+            paragraphBlock.Inlines.FillInlines(paragraph);
+        }
+
+        public static void HandleBlocks(this IEnumerable<MarkdownBlock> blocks, Document document, Paragraph paragraph = null)
+        {
+            bool lineBreak = false;
+
+            foreach (var block in blocks)
+            {
+                if (lineBreak)
+                {
+                    document.LastSection.AddPageBreak();
+                    lineBreak = false;
+                }
+
+                switch (block)
+                {
+                    case ParagraphBlock p:
+                        paragraph ??= document.LastSection.AddParagraph();
+                        p.MakeParagraph(paragraph, document);
+                        break;
+                    case HeaderBlock header:
+                        paragraph ??= document.LastSection.AddParagraph();
+                        header.MakeHeader(paragraph, document);
+                        break;
+                    case ListBlock list:
+                        paragraph ??= document.LastSection.AddParagraph();
+                        list.MakeList(paragraph, document);
+                        break;
+                    case WorkerBlock w:
+                        w.MakeWorkerTable(document, Unit.FromMillimeter(8));
+                        break;
+                    case HorizontalRuleBlock hr:
+                        lineBreak = true;
+                        break;
+                    case TableBlock table:
+                        table.Make(document); ;
+                        break;
+                    default:
+                        break;
+                }
+                paragraph = null;
+            }
+        }
+
+        public static void Make(this TableBlock block, Document document)
+        {
+
+
+            var table = new Table
+            {
+                Style = "table"
+            };
+            table.Format.Alignment = ParagraphAlignment.Center;
+            table.Format.SpaceAfter = new Unit(1, UnitType.Centimeter);
+            table.Format.WidowControl = true;
+
+            //table.BottomPadding = new Unit(1, UnitType.Centimeter);
+
+            table.Borders.Width = 0.75;
+
+            for (var i = 0; i < block.ColumnDefinitions.Count; i++)
+            {
+                var column = table.AddColumn();
+
+                column.Format.Alignment = block.ColumnDefinitions[i].Alignment switch
+                {
+                    ColumnAlignment.Center => ParagraphAlignment.Center,
+                    ColumnAlignment.Right => ParagraphAlignment.Right,
+                    _ => ParagraphAlignment.Left,
+                };
+            }
+
+
+
+            for (var i = 0; i < block.Rows.Count; i++)
+            {
+                var row = table.AddRow();
+                row.Height = 1;
+                row.HeightRule = RowHeightRule.AtLeast;
+                var originalRow = block.Rows[i].Cells;
+
+                for (int j = 0; j < originalRow.Count; j++)
+                {
+
+                    var cell = row.Cells[j];
+
+                    var p = cell.AddParagraph();
+                    p.Style = "NoSpacing";
+                    originalRow[j].Inlines.FillInlines(p);
+                }
+
+
+
+            }
+
+
+            table.SetEdge(0, 0, block.ColumnDefinitions.Count, table.Rows.Count, Edge.Box, BorderStyle.Single, 1.5, Colors.Black);
+
+            document.LastSection.Add(table);
+        }
+
         public static XFont GetSubstituteFont(string emoji)
         {
             var xFont = fontResolver.Fonts.Select(x => new XFont(x, 9)).FirstOrDefault(x => x.IsCharSupported(emoji, 0));
@@ -151,6 +315,7 @@ namespace Parsers
                             .AddBlockParser<CardMetadataBlock.Parser>()
                             .AddBlockParser<WorkerCostBlock.Parser>()
                             .AddBlockParser<WorkerTextBlock.Parser>()
+                            .AddBlockParser<TableBlock.Parser>()
 
 
                             .AddInlineParser<ItalicTextInline.ParserAsterix>()
@@ -163,7 +328,7 @@ namespace Parsers
                             {
                                 x.UseDefaultEmojis = false;
                                 x.AddEmoji("f", 0x1f525);
-                                x.AddEmoji("fw", 0x1f6f1); 
+                                x.AddEmoji("fw", 0x1f6f1);
                                 //x.AddEmoji("fw", 0x26d1); // helmet with cross
                                 x.AddEmoji("s", 0x2623);
                                 x.AddEmoji("sw", 0x2695);

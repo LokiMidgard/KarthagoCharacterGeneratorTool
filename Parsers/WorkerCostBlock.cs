@@ -90,7 +90,7 @@ namespace Parsers
 
         protected abstract void GetString(int index, Paragraph paragraph);
 
-        public void MakeWorkerTable(Paragraph paragraph, Document document, Unit? blockSize = null)
+        public void MakeWorkerTable(Document document, Unit? blockSize = null)
         {
             blockSize ??= Unit.FromCentimeter(1.5);
 
@@ -148,7 +148,7 @@ namespace Parsers
                 }
 
             table.SetEdge(0, 0, numberOfColumns, table.Rows.Count, Edge.Box, BorderStyle.Single, 1.5, Colors.Black);
-
+            
             document.LastSection.Add(table);
         }
 

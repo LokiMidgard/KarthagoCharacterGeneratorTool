@@ -78,7 +78,7 @@ namespace KarthagoCharacterGeneratorTool
 
             DefineContentSection(document);
 
-            HandleBlocks(doc.Blocks, document);
+            doc.Blocks.HandleBlocks(document);
 
             //DefineParagraphs(document);
             //DefineTables(document);
@@ -89,100 +89,7 @@ namespace KarthagoCharacterGeneratorTool
 
 
 
-        private static void HandleBlocks(IEnumerable<MarkdownBlock> blocks, Document document, Paragraph paragraph = null)
-        {
-            bool lineBreak = false;
 
-            foreach (var block in blocks)
-            {
-                if (lineBreak)
-                {
-                    document.LastSection.AddPageBreak();
-                    lineBreak = false;
-                }
-                paragraph ??= document.LastSection.AddParagraph();
-                switch (block)
-                {
-                    case ParagraphBlock p:
-                        MakeParagraph(paragraph, p, document);
-                        break;
-                    case HeaderBlock header:
-                        MakeHeader(paragraph, header, document);
-                        break;
-                    case ListBlock list:
-                        MakeList(paragraph, list, document);
-                        break;
-                    case WorkerBlock w:
-                        w.MakeWorkerTable(paragraph, document);
-                        break;
-                    case HorizontalRuleBlock hr:
-                        lineBreak = true;
-                        break;
-                    default:
-                        break;
-                }
-                paragraph = null;
-            }
-        }
-
-
-
-        private static void MakeList(Paragraph paragraph, ListBlock list, Document document)
-        {
-            for (var i = 0; i < list.Items.Count; i++)
-            {
-                paragraph ??= document.LastSection.AddParagraph();
-
-                var listStyle = list.Style == ListStyle.Bulleted
-                    ? "UnorderedList"
-                    : "OrderedList";
-
-                //var section = (Section)parent;
-                var isFirst = i == 0;
-                var isLast = i == list.Items.Count - 1;
-
-                // if this is the first item add the ListStart paragraph
-                //if (isFirst)
-                //{
-                //    var p = section.AddParagraph();
-                //    p.Style = "ListStart";
-                //}
-
-                var listItem = paragraph;
-                listItem.Style = listStyle;
-
-                var current = list.Items[i];
-                HandleBlocks(current.Blocks, document, paragraph);
-
-
-                // disable continuation if this is the first list item
-                listItem.Format.ListInfo.ContinuePreviousList = !isFirst;
-
-                // if the this is the last item add the ListEnd paragraph
-                //if (isLast)
-                //{
-                //    var p = section.AddParagraph();
-                //    p.Style = "ListEnd";
-                //}
-                paragraph = null;
-            }
-
-
-
-
-        }
-
-        private static void MakeHeader(Paragraph paragraph, HeaderBlock header, Document document)
-        {
-            paragraph.Style = $"Heading{header.HeaderLevel}";
-            paragraph.AddBookmark("Paragraphs");
-
-            header.Inlines.FillInlines(paragraph);
-        }
-        private static void MakeParagraph(Paragraph paragraph, ParagraphBlock paragraphBlock, Document document)
-        {
-            paragraphBlock.Inlines.FillInlines(paragraph);
-        }
 
         static void DefineContentSection(Document document)
         {

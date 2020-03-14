@@ -160,7 +160,7 @@ namespace SienceCards
                 //DefineTableOfContents(document);
 
                 DefineContentSection(doc);
-                HandleBlocks(card.Content, doc);
+                card.Content.HandleBlocks(doc);
 
 
                 // Create a renderer and prepare (=layout) the document
@@ -290,158 +290,10 @@ namespace SienceCards
         }
 
 
-        private static void HandleBlocks(IEnumerable<MarkdownBlock> blocks, Document document, Paragraph paragraph = null)
-        {
-            bool lineBreak = false;
-
-            foreach (var block in blocks)
-            {
-                if (lineBreak)
-                {
-                    document.LastSection.AddPageBreak();
-                    lineBreak = false;
-                }
-                paragraph ??= document.LastSection.AddParagraph();
-                switch (block)
-                {
-                    case ParagraphBlock p:
-                        MakeParagraph(paragraph, p, document);
-                        break;
-                    case HeaderBlock header:
-                        MakeHeader(paragraph, header, document);
-                        break;
-                    case ListBlock list:
-                        MakeList(paragraph, list, document);
-                        break;
-                    case WorkerBlock w:
-                        w.MakeWorkerTable(paragraph, document, Unit.FromMillimeter(8));
-                        break;
-                    case HorizontalRuleBlock hr:
-                        lineBreak = true;
-                        break;
-                    default:
-                        break;
-                }
-                paragraph = null;
-            }
-        }
-
-        //private static void MakeTable(Paragraph paragraph, CardMetadataBlock w, Document document)
-        //{
-
-        //    var numberOfColumns = Math.Min(6, w.WorkerCosts.Count);
-
-
-        //    var table = new Table();
-        //    table.Style = "table";
-        //    table.Format.Alignment = ParagraphAlignment.Center;
-        //    table.Format.SpaceAfter = new Unit(1, UnitType.Centimeter);
-        //    table.Format.WidowControl = true;
-
-        //    //table.BottomPadding = new Unit(1, UnitType.Centimeter);
-
-        //    table.Borders.Width = 0.75;
-
-        //    for (var i = 0; i < numberOfColumns; i++)
-        //    {
-        //        var column = table.AddColumn(Unit.FromCentimeter(1.5));
-        //        column.Format.Alignment = ParagraphAlignment.Center;
-        //    }
-
-        //    Row row = null;
-
-
-        //    for (var i = 0; i < w.WorkerCosts.Count; i++)
-        //    {
-        //        if (row is null)
-        //        {
-        //            row = table.AddRow();
-        //            row.Height = Unit.FromCentimeter(1.5);
-        //        }
-
-        //        var cell = row.Cells[i % numberOfColumns];
-        //        cell.AddParagraph(w.WorkerCosts[i].ToString());
-
-
-        //        if (i % numberOfColumns == numberOfColumns - 1)
-        //            row = null;
-
-        //    }
-
-        //    if (row != null)
-        //        for (int i = 0; i < numberOfColumns - (w.WorkerCosts.Count % numberOfColumns); i++)
-        //        {
-        //            var cell = row.Cells[numberOfColumns - 1 - i];
-        //            cell.Shading.Color = Colors.Black;
-        //        }
-
-        //    table.SetEdge(0, 0, numberOfColumns, table.Rows.Count, Edge.Box, BorderStyle.Single, 1.5, Colors.Black);
-
-        //    document.LastSection.Add(table);
-        //}
-
-        private static void MakeList(Paragraph paragraph, ListBlock list, Document document)
-        {
-            for (var i = 0; i < list.Items.Count; i++)
-            {
-                paragraph ??= document.LastSection.AddParagraph();
-
-                var listStyle = list.Style == ListStyle.Bulleted
-                    ? "UnorderedList"
-                    : "OrderedList";
-
-                //var section = (Section)parent;
-                var isFirst = i == 0;
-                var isLast = i == list.Items.Count - 1;
-
-                // if this is the first item add the ListStart paragraph
-                //if (isFirst)
-                //{
-                //    var p = section.AddParagraph();
-                //    p.Style = "ListStart";
-                //}
-
-                var listItem = paragraph;
-                listItem.Style = listStyle;
-
-                var current = list.Items[i];
-                HandleBlocks(current.Blocks, document, paragraph);
-
-
-                // disable continuation if this is the first list item
-                listItem.Format.ListInfo.ContinuePreviousList = !isFirst;
-
-                // if the this is the last item add the ListEnd paragraph
-                //if (isLast)
-                //{
-                //    var p = section.AddParagraph();
-                //    p.Style = "ListEnd";
-                //}
-                paragraph = null;
-            }
-
-
-
-
-        }
-
-        private static void MakeHeader(Paragraph paragraph, HeaderBlock header, Document document)
-        {
-            paragraph.Style = $"Heading{header.HeaderLevel}";
-            paragraph.AddBookmark("Paragraphs");
-
-            header.Inlines.FillInlines(paragraph);
-        }
-        private static void MakeParagraph(Paragraph paragraph, ParagraphBlock paragraphBlock, Document document)
-        {
-            paragraphBlock.Inlines.FillInlines(paragraph);
-        }
 
         /// <summary>
         /// Defines the styles used in the document.
         /// </summary>
-
-
         static void DefineContentSection(Document document)
         {
             var section = document.AddSection();

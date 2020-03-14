@@ -120,29 +120,6 @@ namespace CrisesCards
                     var costMarginRight = new XUnit(5, XGraphicsUnit.Millimeter);
 
 
-                    //gfx.RotateTransform(90);
-
-                    //var costRect = new XRect(pageWdith - costSize.Width - costMarginRight, new XUnit(5, XGraphicsUnit.Millimeter), costSize.Width, costSize.Height);
-                    //var durationRect = costRect;
-                    //durationRect.Height *= 2.1;
-
-                    //gfx.DrawRoundedRectangle(XPens.Orange, XBrushes.LightYellow, durationRect, new XSize(10, 10));
-                    //gfx.DrawRoundedRectangle(XPens.Purple, XBrushes.MediumPurple, costRect, new XSize(10, 10));
-
-
-                    //var costTextRect = costRect;
-                    //costTextRect.Width -= new XUnit(1, XGraphicsUnit.Millimeter);
-                    //gfx.DrawString($"{card.Metadata.Cost:n0} ¤", font, XBrushes.Black,
-                    //  costTextRect, XStringFormats.CenterRight);
-
-                    //var subfont = Markdown.GetSubstituteFont("⌛");
-                    //subfont = new XFont(subfont.Name, font.Size);
-
-                    //var durationTextRect = durationRect;
-                    //durationTextRect.Width -= new XUnit(1, XGraphicsUnit.Millimeter);
-
-                    //gfx.DrawString($"{card.Metadata.Duration:n0} ⌛", subfont, XBrushes.Black,
-                    //    durationTextRect, XStringFormats.BottomRight);
 
 
                     var actionRect = new XRect(costMarginRight, new XUnit(5, XGraphicsUnit.Millimeter), pageHeight * 2, costSize.Height * 2);
@@ -177,8 +154,8 @@ namespace CrisesCards
 
                     // Create a new MigraDoc document
                     var doc = new Document();
-                    doc.Info.Title = "Forschungs Karten";
-                    doc.Info.Subject = "Die Forschungskarten des spiels";
+                    doc.Info.Title = "Krisen Karten";
+                    doc.Info.Subject = "Die Krisenkarten des spiels";
                     doc.Info.Author = "Arbeitstitel Karthago";
 
 
@@ -196,7 +173,7 @@ namespace CrisesCards
                     //DefineTableOfContents(document);
 
                     DefineContentSection(doc);
-                    HandleBlocks(card.Content, doc);
+                    card.Content.HandleBlocks(doc);
 
 
                     // Create a renderer and prepare (=layout) the document
@@ -328,41 +305,7 @@ namespace CrisesCards
         }
 
 
-        private static void HandleBlocks(IEnumerable<MarkdownBlock> blocks, Document document, Paragraph paragraph = null)
-        {
-            bool lineBreak = false;
 
-            foreach (var block in blocks)
-            {
-                if (lineBreak)
-                {
-                    document.LastSection.AddPageBreak();
-                    lineBreak = false;
-                }
-                paragraph ??= document.LastSection.AddParagraph();
-                switch (block)
-                {
-                    case ParagraphBlock p:
-                        MakeParagraph(paragraph, p, document);
-                        break;
-                    case HeaderBlock header:
-                        MakeHeader(paragraph, header, document);
-                        break;
-                    case ListBlock list:
-                        MakeList(paragraph, list, document);
-                        break;
-                    case WorkerBlock w:
-                        w.MakeWorkerTable(paragraph, document, Unit.FromMillimeter(8));
-                        break;
-                    case HorizontalRuleBlock hr:
-                        lineBreak = true;
-                        break;
-                    default:
-                        break;
-                }
-                paragraph = null;
-            }
-        }
 
         //private static void MakeTable(Paragraph paragraph, CardMetadataBlock w, Document document)
         //{
@@ -418,62 +361,7 @@ namespace CrisesCards
         //    document.LastSection.Add(table);
         //}
 
-        private static void MakeList(Paragraph paragraph, ListBlock list, Document document)
-        {
-            for (var i = 0; i < list.Items.Count; i++)
-            {
-                paragraph ??= document.LastSection.AddParagraph();
 
-                var listStyle = list.Style == ListStyle.Bulleted
-                    ? "UnorderedList"
-                    : "OrderedList";
-
-                //var section = (Section)parent;
-                var isFirst = i == 0;
-                var isLast = i == list.Items.Count - 1;
-
-                // if this is the first item add the ListStart paragraph
-                //if (isFirst)
-                //{
-                //    var p = section.AddParagraph();
-                //    p.Style = "ListStart";
-                //}
-
-                var listItem = paragraph;
-                listItem.Style = listStyle;
-
-                var current = list.Items[i];
-                HandleBlocks(current.Blocks, document, paragraph);
-
-
-                // disable continuation if this is the first list item
-                listItem.Format.ListInfo.ContinuePreviousList = !isFirst;
-
-                // if the this is the last item add the ListEnd paragraph
-                //if (isLast)
-                //{
-                //    var p = section.AddParagraph();
-                //    p.Style = "ListEnd";
-                //}
-                paragraph = null;
-            }
-
-
-
-
-        }
-
-        private static void MakeHeader(Paragraph paragraph, HeaderBlock header, Document document)
-        {
-            paragraph.Style = $"Heading{header.HeaderLevel}";
-            paragraph.AddBookmark("Paragraphs");
-
-            header.Inlines.FillInlines(paragraph);
-        }
-        private static void MakeParagraph(Paragraph paragraph, ParagraphBlock paragraphBlock, Document document)
-        {
-            paragraphBlock.Inlines.FillInlines(paragraph);
-        }
 
         /// <summary>
         /// Defines the styles used in the document.

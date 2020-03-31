@@ -124,7 +124,6 @@ namespace AssetGenerator
                                 {
                                     var start = dataset[j].startIndex;
                                     var crisis = dataset[j].crisisType;
-                                    var o = crisisOutput.CreateSubdirectory(crisis);
                                     int end;
                                     if (j < dataset.Length - 1)
                                         end = dataset[j + 1].startIndex - 1;
@@ -163,12 +162,12 @@ namespace AssetGenerator
                                         }
                                     }
                                     g.Dispose();
-                                    outputPng.Save(Path.Combine(o.FullName, $"{crisis}_front.png"));
+                                    outputPng.Save(Path.Combine(crisisOutput.FullName, $"{crisis}_front.png"));
                                     outputPng.Dispose();
                                     using (var pageReader = library.GetPageReader(tmp, end, Resolution))
                                     {
                                         using (var currentImage = GetModifiedImage(pageReader))
-                                            currentImage.Save(Path.Combine(o.FullName, $"{crisis}_back.png"));
+                                            currentImage.Save(Path.Combine(crisisOutput.FullName, $"{crisis}_back.png"));
                                     }
                                 }
                             }

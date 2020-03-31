@@ -18,42 +18,35 @@ using System.Threading.Tasks;
 
 namespace ActionCards
 {
-    class Program
+    public static class ActionGenerator
     {
         static async Task Main(string[] args)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            await Task.WhenAll(args.Select(a => GenerateDocument(a)));
+            await Task.WhenAll(args.Select(a =>
+            {
+                var filename = System.IO.Path.ChangeExtension(a, ".pdf");
+                return GenerateDocument(a, filename);
+            }));
         }
 
-        private static async Task GenerateDocument(string a)
+        public static async Task GenerateDocument(string input, string output)
         {
-
             var doc = Markdown.GetDefaultMarkdownDowcument();
-
-            var txt = await System.IO.File.ReadAllTextAsync(a);
+            var txt = await System.IO.File.ReadAllTextAsync(input);
 
             doc.Parse(txt);
 
-            var lastChangeTime = System.IO.File.GetLastWriteTime(a);
+            var lastChangeTime = System.IO.File.GetLastWriteTime(input);
 
             // Create a MigraDoc document
             var document = CreateDocument(CardData.Create(doc).ToArray(), lastChangeTime);
 
-            ////string ddl = MigraDoc.DocumentObjectModel.IO.DdlWriter.WriteToString(document);
-            //MigraDoc.DocumentObjectModel.IO.DdlWriter.WriteToFile(document, "MigraDoc.mdddl");
-
-            //var renderer = new PdfDocumentRenderer(true, PdfFontEmbedding.Always);
-            //renderer.Document = document;
-
-            //renderer.RenderDocument();
-
             // Save the document...
-            var filename = System.IO.Path.ChangeExtension(a, ".pdf");
-            document.Save(filename);
+            document.Save(output);
         }
 
-        public static PdfDocument CreateDocument(IEnumerable<CardData> cards, DateTime fileChanged)
+        private static PdfDocument CreateDocument(IEnumerable<CardData> cards, DateTime fileChanged)
         {
             var pageWdith = XUnit.FromInch(2.5);
             var pageHeight = XUnit.FromInch(3.5);
@@ -174,7 +167,29 @@ namespace ActionCards
                     // Pop the previous graphical state
                     //gfx.EndContainer(container);
                 }
+
             }
+            // card back
+            {
+                PdfPage page = document.AddPage();
+
+                page.Width = new XUnit(pageWdith.Millimeter, XGraphicsUnit.Millimeter);
+                page.Height = new XUnit(pageHeight.Millimeter, XGraphicsUnit.Millimeter);
+
+
+                XGraphics gfx = XGraphics.FromPdfPage(page);
+                // HACK²
+                gfx.MUH = PdfFontEncoding.Unicode;
+                //gfx.MFEH = PdfFontEmbedding.Default;
+
+                XFont font = new XFont("Verdana", 36, XFontStyle.Regular);
+                var costSize = new XSize(new XUnit(23, XGraphicsUnit.Millimeter), font.Height);
+                var costMarginRight = new XUnit(5, XGraphicsUnit.Millimeter);
+                var titleRect = new XRect(0, 0, pageWdith, pageHeight);
+                gfx.DrawString($"Aktion", font, XBrushes.DarkRed,
+                  titleRect, XStringFormats.Center);
+            }
+
 
 
             //DefineParagraphs(document);

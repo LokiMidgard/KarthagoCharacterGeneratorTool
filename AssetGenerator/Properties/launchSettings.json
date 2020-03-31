@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AssetGenerator": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\patri\\source\\repos\\KartagoTest"
+    }
+  }
+}

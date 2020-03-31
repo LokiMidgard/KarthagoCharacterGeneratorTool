@@ -59,7 +59,7 @@ namespace AssetGenerator
                                 int height = -1;
                                 var name = Path.GetFileNameWithoutExtension(item.Name);
                                 var numberOfCards = (pageCount - 1);
-                                await crisisWriter.WriteLineAsync(numberOfCards.ToString());
+                                await crisisWriter.WriteLineAsync(name);
                                 await crisisWriter.WriteLineAsync(numberOfCards.ToString());
                                 for (int j = 0; j < pageCount - 1; j++)
                                 {

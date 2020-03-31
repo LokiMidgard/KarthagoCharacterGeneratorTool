@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 namespace CrisesCards
 {
 
-    class Program
+    public class CirsisGeneator
     {
 
         private static int count;
@@ -31,25 +31,30 @@ namespace CrisesCards
 
             Console.WriteLine($"Will Work on {args.Length} Jobs in parrallel.");
 
-            await Task.WhenAll(args.Select(a => GenerateDocument(a)));
+            await Task.WhenAll(args.Select(a =>
+            {
+                var filename = System.IO.Path.ChangeExtension(a, ".pdf");
+
+                return GenerateDocument(a, filename);
+            }));
         }
 
-        private static async Task GenerateDocument(string a)
+        public static async Task<(string crisisType, int startIndex)[]> GenerateDocument(string input, string output)
         {
             var currentInstance = System.Threading.Interlocked.Increment(ref count);
 
             var doc = Markdown.GetDefaultMarkdownDowcument();
 
-            var txt = await System.IO.File.ReadAllTextAsync(a);
+            var txt = await System.IO.File.ReadAllTextAsync(input);
 
             doc.Parse(txt);
 
-            var lastChangeTime = System.IO.File.GetLastWriteTime(a);
+            var lastChangeTime = System.IO.File.GetLastWriteTime(input);
 
             // Create a MigraDoc document
             var cards = CardData.Create(doc).ToArray();
             Console.WriteLine($"{currentInstance}: Found {cards.Length} cards.");
-            var document = CreateDocument(cards, lastChangeTime, currentInstance);
+            var (document, metadata) = CreateDocument(cards, lastChangeTime, currentInstance);
 
             ////string ddl = MigraDoc.DocumentObjectModel.IO.DdlWriter.WriteToString(document);
             //MigraDoc.DocumentObjectModel.IO.DdlWriter.WriteToFile(document, "MigraDoc.mdddl");
@@ -60,15 +65,15 @@ namespace CrisesCards
             //renderer.RenderDocument();
 
             // Save the document...
-            var filename = System.IO.Path.ChangeExtension(a, ".pdf");
-            Console.WriteLine($"{currentInstance}: Saving {filename}...");
-            document.Save(filename);
+            Console.WriteLine($"{currentInstance}: Saving {output}...");
+            document.Save(output);
             Console.WriteLine($"{currentInstance}: Finished!");
+            return metadata;
         }
 
 
 
-        public static PdfDocument CreateDocument(IEnumerable<CardData> cards, DateTime fileChanged, int currentInstance)
+        public static (PdfDocument document, (string crisisType, int startIndex)[]) CreateDocument(IEnumerable<CardData> cards, DateTime fileChanged, int currentInstance)
         {
             var pageWdith = XUnit.FromInch(2.5);
             var pageHeight = XUnit.FromInch(3.5);
@@ -85,8 +90,20 @@ namespace CrisesCards
             int counter = 0;
             var total = cards.Sum(x => x.Metadata.Times);
             string currentCardType = null;
+            var resultList = new List<(string crisisType, int startIndex)>();
             foreach (var card in cards)
             {
+                if (card.Metadata.Type != null && currentCardType != null)
+                {
+                    // Create new Back
+                    CrateBack(pageWdith, pageHeight, document, currentCardType);
+                }
+
+                if (card.Metadata.Type != null)
+                {
+                    resultList.Add((card.Metadata.Type, document.PageCount));
+                }
+
                 currentCardType = card.Metadata.Type ?? currentCardType;
                 if (currentCardType is null)
                 {
@@ -198,13 +215,67 @@ namespace CrisesCards
                 }
                 Console.WriteLine(" Finished card.");
             }
+            CrateBack(pageWdith, pageHeight, document, currentCardType);
 
 
             //DefineParagraphs(document);
             //DefineTables(document);
             //DefineCharts(document);
 
-            return document;
+            return (document, resultList.ToArray());
+        }
+
+        private static void CrateBack(XUnit pageWdith, XUnit pageHeight, PdfDocument document, string currentCardType)
+        {
+            PdfPage page = document.AddPage();
+
+            page.Width = new XUnit(pageWdith.Millimeter, XGraphicsUnit.Millimeter);
+            page.Height = new XUnit(pageHeight.Millimeter, XGraphicsUnit.Millimeter);
+
+
+            XGraphics gfx = XGraphics.FromPdfPage(page);
+            // HACK²
+            gfx.MUH = PdfFontEncoding.Unicode;
+            //gfx.MFEH = PdfFontEmbedding.Default;
+
+            gfx.ScaleAtTransform(-1, 1, page.Width / 2, page.Height / 2);
+
+            XFont font = new XFont("Verdana", 13, XFontStyle.Regular);
+
+
+
+            var costSize = new XSize(new XUnit(23, XGraphicsUnit.Millimeter), font.Height);
+
+            var costMarginRight = new XUnit(5, XGraphicsUnit.Millimeter);
+
+
+
+
+            var actionRect = new XRect(costMarginRight, new XUnit(5, XGraphicsUnit.Millimeter), pageHeight * 2, costSize.Height * 2);
+            var actionTextRect = actionRect;
+            actionTextRect.Height = costSize.Height;
+            actionTextRect.Offset(new XUnit(3, XGraphicsUnit.Millimeter), 0);
+
+            gfx.TranslateTransform(new XUnit(3, XGraphicsUnit.Millimeter), 0);
+            gfx.RotateAtTransform(90, actionRect.TopLeft);
+
+            gfx.DrawRoundedRectangle(XPens.MidnightBlue, XBrushes.DarkSlateBlue, actionRect, new XSize(10, 10));
+
+            gfx.ScaleAtTransform(1, -1, actionTextRect.Center);
+
+            gfx.DrawString(currentCardType, font, XBrushes.White,
+            actionTextRect, XStringFormats.TopLeft);
+            gfx.ScaleAtTransform(1, -1, actionTextRect.Center);
+
+
+            gfx.RotateAtTransform(-90, actionRect.TopLeft);
+            gfx.TranslateTransform(new XUnit(-3, XGraphicsUnit.Millimeter), 0);
+
+            var circle = new XRect(new XUnit(-3, XGraphicsUnit.Millimeter), pageHeight - new XUnit(10, XGraphicsUnit.Millimeter), new XUnit(13, XGraphicsUnit.Millimeter), new XUnit(13, XGraphicsUnit.Millimeter));
+
+            gfx.DrawEllipse(XPens.MidnightBlue, XBrushes.White, circle);
+
+
         }
 
         public class CardData

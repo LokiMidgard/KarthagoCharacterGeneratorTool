@@ -201,7 +201,7 @@ namespace SienceCards
                 gfx.MUH = PdfFontEncoding.Unicode;
                 //gfx.MFEH = PdfFontEmbedding.Default;
 
-                XFont font = new XFont("Verdana", 36, XFontStyle.Regular);
+                XFont font = new XFont("Verdana", 30, XFontStyle.Regular);
 
 
 

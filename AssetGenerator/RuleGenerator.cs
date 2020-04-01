@@ -24,7 +24,7 @@ namespace AssetGenerator
             var document = CreateDocument(doc);
 
             //string ddl = MigraDoc.DocumentObjectModel.IO.DdlWriter.WriteToString(document);
-            MigraDoc.DocumentObjectModel.IO.DdlWriter.WriteToFile(document, "MigraDoc.mdddl");
+            //MigraDoc.DocumentObjectModel.IO.DdlWriter.WriteToFile(document, "MigraDoc.mdddl");
 
             var renderer = new PdfDocumentRenderer(true);
             renderer.Document = document;
@@ -48,7 +48,7 @@ namespace AssetGenerator
 
             document.DefaultPageSetup.PageFormat = PageFormat.A5;
 
-            PageSetup.GetPageSize(PageFormat.A6, out var width, out var height);
+            PageSetup.GetPageSize(PageFormat.A5, out var width, out var height);
             document.DefaultPageSetup.PageWidth = width;
             document.DefaultPageSetup.PageHeight = height;
 

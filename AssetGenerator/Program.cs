@@ -26,8 +26,74 @@ namespace AssetGenerator
 
             await CreateCrisis(output);
             await CreateActions(output);
+            await CreateSience(output);
         }
 
+        private static async Task CreateSience(DirectoryInfo output)
+        {
+            var actionsInput = new DirectoryInfo("sience");
+            if (actionsInput.Exists)
+            {
+                var actionsOutput = output.CreateSubdirectory("sience");
+                var allCrisisFile = new FileInfo(Path.Combine(actionsOutput.FullName, "Index"));
+                using (var crisisStream = allCrisisFile.Open(FileMode.Create))
+                using (var crisisWriter = new StreamWriter(crisisStream))
+
+                {
+
+                    foreach (var item in actionsInput.GetFiles("*.md"))
+                    {
+                        var tmp = Path.GetTempFileName();
+                        try
+                        {
+                            await global::SienceCards.SieneceGenerator.GenerateDocument(item.FullName, tmp);
+
+                            using var library = DocLib.Instance;
+                            int pageCount;
+                            using (var docReader = library.GetDocReader(tmp, 1, 1))
+                                pageCount = docReader.GetPageCount();
+                            Bitmap outputPng = null;
+                            Graphics g = null;
+                            {
+                                int width = -1;
+                                int totalWidth = -1;
+                                int height = -1;
+                                var name = Path.GetFileNameWithoutExtension(item.Name);
+                                var numberOfCards = (pageCount - 1);
+                                await crisisWriter.WriteLineAsync(name);
+                                await crisisWriter.WriteLineAsync(numberOfCards.ToString());
+                                for (int j = 0; j < pageCount - 1; j++)
+                                {
+                                    using var pageReader = library.GetPageReader(tmp, j, Resolution);
+                                    if (outputPng is null)
+                                    {
+                                        width = pageReader.GetPageWidth();
+                                        totalWidth = width * Math.Min(numberOfCards, 10);
+                                        height = pageReader.GetPageHeight();
+                                        var totalHeight = (int)Math.Ceiling((numberOfCards / 10.0)) * height;
+                                        outputPng = new Bitmap(totalWidth, totalHeight);
+                                        g = Graphics.FromImage(outputPng);
+                                    }
+                                    using (var currentImage = GetModifiedImage(pageReader))
+                                        g.DrawImageUnscaled(currentImage, new Point(width * (j % 10), height * (j / 10)));
+                                }
+                                g.Dispose();
+                                outputPng.Save(Path.Combine(actionsOutput.FullName, $"{name}_front.png"));
+                                outputPng.Dispose();
+                                using (var pageReader = library.GetPageReader(tmp, pageCount - 1, Resolution))
+                                using (var currentImage = GetModifiedImage(pageReader))
+                                    currentImage.Save(Path.Combine(actionsOutput.FullName, $"{name}_back.png"));
+                            }
+                        }
+                        finally
+                        {
+                            File.Delete(tmp);
+                        }
+                    }
+
+                }
+            }
+        }
         private static async Task CreateActions(DirectoryInfo output)
         {
             var actionsInput = new DirectoryInfo("actions");

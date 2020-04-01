@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace SienceCards
 {
-    class Program
+    public class SieneceGenerator
     {
 
         static async Task Main(string[] args)
@@ -27,18 +27,22 @@ namespace SienceCards
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 
-            await Task.WhenAll(args.Select(a => GenerateDocument(a)));
+            await Task.WhenAll(args.Select(a =>
+            {
+                var filename = System.IO.Path.ChangeExtension(a, ".pdf");
+                return GenerateDocument(a, filename);
+            }));
         }
 
-        private static async Task GenerateDocument(string a)
+        public static async Task GenerateDocument(string input, string output)
         {
             var doc = Markdown.GetDefaultMarkdownDowcument();
 
-            var txt = await System.IO.File.ReadAllTextAsync(a);
+            var txt = await System.IO.File.ReadAllTextAsync(input);
 
             doc.Parse(txt);
 
-            var lastChangeTime = System.IO.File.GetLastWriteTime(a);
+            var lastChangeTime = System.IO.File.GetLastWriteTime(input);
 
             // Create a MigraDoc document
             var document = CreateDocument(CardData.Create(doc).ToArray(), lastChangeTime);
@@ -52,8 +56,7 @@ namespace SienceCards
             //renderer.RenderDocument();
 
             // Save the document...
-            var filename = System.IO.Path.ChangeExtension(a, ".pdf");
-            document.Save(filename);
+            document.Save(output);
         }
 
 

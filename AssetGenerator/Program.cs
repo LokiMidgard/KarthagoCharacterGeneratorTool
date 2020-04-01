@@ -27,6 +27,18 @@ namespace AssetGenerator
             await CreateCrisis(output);
             await CreateActions(output);
             await CreateSience(output);
+            await CreateRule(output);
+        }
+
+        private static async Task<bool> CreateRule(DirectoryInfo output)
+        {
+            var source = new FileInfo("rules.md");
+            if (!source.Exists)
+                return false;
+
+            await RuleGenerator.GenerateDocument(source.FullName, Path.Combine(output.FullName, "rules.pdf"));
+
+            return true;
         }
 
         private static async Task CreateSience(DirectoryInfo output)

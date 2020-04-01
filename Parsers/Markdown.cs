@@ -317,42 +317,47 @@ namespace Parsers
                             .AddBlockParser<WorkerTextBlock.Parser>()
                             .AddBlockParser<TableBlock.Parser>()
 
-
                             .AddInlineParser<ItalicTextInline.ParserAsterix>()
                             .AddInlineParser<ItalicTextInline.ParserUnderscore>()
                             .AddInlineParser<BoldTextInline.ParserUnderscore>()
                             .AddInlineParser<BoldTextInline.ParserAsterix>()
                             .AddInlineParser<BoldItalicTextInline.ParserUnderscore>()
                             .AddInlineParser<BoldItalicTextInline.ParserAsterix>()
-                            .AddInlineParser<EmojiInline.Parser>(x =>
-                            {
-                                x.UseDefaultEmojis = false;
-                                x.AddEmoji("f", 0x1f525);
-                                x.AddEmoji("fw", 0x1f6f1);
-                                //x.AddEmoji("fw", 0x26d1); // helmet with cross
-                                x.AddEmoji("s", 0x2623);
-                                x.AddEmoji("sw", 0x2695);
-                                x.AddEmoji("x", 0x24e7);
-                                x.AddEmoji("t", 0x231b);
-                                x.AddEmoji("p", 0x1F465); // player
-                                x.AddEmoji("m", 0x1F4FF); // Monk
-                                x.AddEmoji("a", 0x1F52B); // Soldir
-                                x.AddEmoji("b", 0x1F528); // Worker
-                                x.AddEmoji("sience", 0x1F52C); // Sience
-                                //x.AddEmoji("siencetist", 0x1F97D); // Sience Googles. But not in font.
-                                x.AddEmoji("siencetist", 0x1F393); // Sience Graduation head
-                                x.AddEmoji("temple", 0x1F6D0); // Sience
-                                x.AddEmoji("c", 0x1F0A0); // card
-
-                                x.AddEmoji("d1", 0x2680); // Sience
-                                x.AddEmoji("d2", 0x2681); // Sience
-                                x.AddEmoji("d3", 0x2682); // Sience
-                                x.AddEmoji("d4", 0x2683); // Sience
-                                x.AddEmoji("d5", 0x2684); // Sience
-                                x.AddEmoji("d6", 0x2685); // Sience
-                            })
+                            .AddIcons()
 
                             .Build();
+        }
+
+
+        public static IDocumentBuilder AddIcons(this IDocumentBuilder documentBuilder)
+        {
+            return documentBuilder.AddInlineParser<EmojiInline.Parser>(x =>
+             {
+                 x.UseDefaultEmojis = false;
+                 x.AddEmoji("f", 0x1f525);
+                 x.AddEmoji("fw", 0x1f6f1);
+                 //x.AddEmoji("fw", 0x26d1); // helmet with cross
+                 x.AddEmoji("s", 0x2623);
+                 x.AddEmoji("sw", 0x2695);
+                 x.AddEmoji("x", 0x24e7);
+                 x.AddEmoji("t", 0x231b);
+                 x.AddEmoji("p", 0x1F465); // player
+                 x.AddEmoji("m", 0x1F4FF); // Monk
+                 x.AddEmoji("a", 0x1F52B); // Soldir
+                 x.AddEmoji("b", 0x1F528); // Worker
+                 x.AddEmoji("sience", 0x1F52C); // Sience
+                                                //x.AddEmoji("siencetist", 0x1F97D); // Sience Googles. But not in font.
+                 x.AddEmoji("siencetist", 0x1F393); // Sience Graduation head
+                 x.AddEmoji("temple", 0x1F6D0); // Sience
+                 x.AddEmoji("c", 0x1F0A0); // card
+
+                 x.AddEmoji("d1", 0x2680); // Sience
+                 x.AddEmoji("d2", 0x2681); // Sience
+                 x.AddEmoji("d3", 0x2682); // Sience
+                 x.AddEmoji("d4", 0x2683); // Sience
+                 x.AddEmoji("d5", 0x2684); // Sience
+                 x.AddEmoji("d6", 0x2685); // Sience
+             });
         }
     }
 

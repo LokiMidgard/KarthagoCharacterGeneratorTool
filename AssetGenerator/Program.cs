@@ -70,7 +70,7 @@ namespace AssetGenerator
 
                             await crisisWriter.WriteLineAsync(baseNname);
                             await crisisWriter.WriteLineAsync(numberOfCards.ToString());
-                            for (int j = 0; j < pageCount - 1; j++)
+                            for (int j = 0; j < pageCount ; j++)
                             {
                                 var name = $"{baseNname}_{j}";
                                 using var pageReader = library.GetPageReader(tmp, j, Resolution);

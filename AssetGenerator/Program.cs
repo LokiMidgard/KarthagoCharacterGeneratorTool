@@ -14,7 +14,7 @@ namespace AssetGenerator
 {
     static class Program
     {
-        private const double Resolution = 8;
+        private const double Resolution = 4;
 
         static async Task Main(string[] args)
         {

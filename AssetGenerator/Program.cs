@@ -43,10 +43,10 @@ namespace AssetGenerator
         }
         private static async Task CreateCharacters(DirectoryInfo output)
         {
-            var actionsInput = new DirectoryInfo("chracters");
+            var actionsInput = new DirectoryInfo("characters");
             if (actionsInput.Exists)
             {
-                var actionsOutput = output.CreateSubdirectory("chracters");
+                var actionsOutput = output.CreateSubdirectory("characters");
                 var allCrisisFile = new FileInfo(Path.Combine(actionsOutput.FullName, "Index"));
                 using (var crisisStream = allCrisisFile.Open(FileMode.Create))
                 using (var crisisWriter = new StreamWriter(crisisStream))

@@ -28,6 +28,7 @@ namespace AssetGenerator
             await CreateActions(output);
             await CreateSience(output);
             await CreateRule(output);
+            await CreateCharacters(output);
         }
 
         private static async Task<bool> CreateRule(DirectoryInfo output)

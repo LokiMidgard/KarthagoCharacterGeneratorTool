@@ -18,20 +18,25 @@ using System.Threading.Tasks;
 
 namespace KarthagoCharacterGeneratorTool
 {
-    class Program
+    public class CharacterGenerator
     {
         static async Task Main(string[] args)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            await Task.WhenAll(args.Select(a => GenerateDocument(a)));
+            await Task.WhenAll(args.Select(a =>
+            {
+                var filename = System.IO.Path.ChangeExtension(a, ".pdf");
+
+                return GenerateDocument(a, filename);
+            }));
         }
 
-        private static async Task GenerateDocument(string a)
+        public static async Task GenerateDocument(string input, string output)
         {
 
             var doc = Markdown.GetDefaultMarkdownDowcument();
 
-            var txt = await System.IO.File.ReadAllTextAsync(a);
+            var txt = await System.IO.File.ReadAllTextAsync(input);
 
             doc.Parse(txt);
 
@@ -47,11 +52,10 @@ namespace KarthagoCharacterGeneratorTool
             renderer.RenderDocument();
 
             // Save the document...
-            var filename = System.IO.Path.ChangeExtension(a, ".pdf");
-            renderer.PdfDocument.Save(filename);
+            renderer.PdfDocument.Save(output);
         }
 
-        public static Document CreateDocument(MarkdownDocument doc)
+        private static Document CreateDocument(MarkdownDocument doc)
         {
             // Create a new MigraDoc document
             var document = new Document();

@@ -40,6 +40,61 @@ namespace AssetGenerator
 
             return true;
         }
+        private static async Task CreateCharacters(DirectoryInfo output)
+        {
+            var actionsInput = new DirectoryInfo("chracters");
+            if (actionsInput.Exists)
+            {
+                var actionsOutput = output.CreateSubdirectory("chracters");
+                var allCrisisFile = new FileInfo(Path.Combine(actionsOutput.FullName, "Index"));
+                using (var crisisStream = allCrisisFile.Open(FileMode.Create))
+                using (var crisisWriter = new StreamWriter(crisisStream))
+
+                {
+
+                    foreach (var item in actionsInput.GetFiles("*.md"))
+                    {
+                        var tmp = Path.GetTempFileName();
+                        try
+                        {
+                            await global::KarthagoCharacterGeneratorTool.CharacterGenerator.GenerateDocument(item.FullName, tmp);
+
+                            using var library = DocLib.Instance;
+                            int pageCount;
+                            using (var docReader = library.GetDocReader(tmp, 1, 1))
+                                pageCount = docReader.GetPageCount();
+
+                            var baseNname = Path.GetFileNameWithoutExtension(item.Name);
+                            var numberOfCards = pageCount;
+
+                            await crisisWriter.WriteLineAsync(baseNname);
+                            await crisisWriter.WriteLineAsync(numberOfCards.ToString());
+                            for (int j = 0; j < pageCount - 1; j++)
+                            {
+                                var name = $"{baseNname}_{j}";
+                                using var pageReader = library.GetPageReader(tmp, j, Resolution);
+
+                                var width = pageReader.GetPageWidth();
+                                var height = pageReader.GetPageHeight();
+
+                                var outputPng = new Bitmap(width, height);
+                                var g = Graphics.FromImage(outputPng);
+                                using (var currentImage = GetModifiedImage(pageReader))
+                                    g.DrawImageUnscaled(currentImage, new Point(0, 0));
+                                g.Dispose();
+                                outputPng.Save(Path.Combine(actionsOutput.FullName, $"{name}.png"));
+                                outputPng.Dispose();
+                            }
+                        }
+                        finally
+                        {
+                            File.Delete(tmp);
+                        }
+                    }
+
+                }
+            }
+        }
 
         private static async Task CreateSience(DirectoryInfo output)
         {
